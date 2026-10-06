@@ -35,6 +35,9 @@ const toIso = (value: unknown): string | null => {
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.trim().length > 0;
 
+const isBookingBody = (value: unknown): value is BookingBody =>
+  typeof value === "object" && value !== null && !Array.isArray(value);
+
 const bookingJson = (row: BookingRow) => ({
   id: row.id,
   equipmentId: row.equipmentId,
@@ -102,11 +105,14 @@ app.get("/api/bookings/:id", async (c) => {
 });
 
 app.post("/api/bookings", async (c) => {
-  let body: BookingBody;
+  let body: unknown;
   try {
     body = await c.req.json();
   } catch {
     return errorJson(c, 400, "Request body must be valid JSON");
+  }
+  if (!isBookingBody(body)) {
+    return errorJson(c, 400, "Request body must be a JSON object");
   }
 
   if (
@@ -174,11 +180,14 @@ app.patch("/api/bookings/:id", async (c) => {
     .first<BookingRow>();
   if (!existing) return errorJson(c, 404, `Booking ${id} not found`);
 
-  let body: BookingBody;
+  let body: unknown;
   try {
     body = await c.req.json();
   } catch {
     return errorJson(c, 400, "Request body must be valid JSON");
+  }
+  if (!isBookingBody(body)) {
+    return errorJson(c, 400, "Request body must be a JSON object");
   }
 
   const keys = Object.keys(body);
