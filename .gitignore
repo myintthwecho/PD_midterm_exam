@@ -1,0 +1,5 @@
+node_modules/
+.wrangler/
+booking-api/dev.log
+booking-api/dev.err
+*.log

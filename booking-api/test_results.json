@@ -1,0 +1,123 @@
+﻿[
+    {
+        "num":  1,
+        "name":  "List equipment",
+        "method":  "GET",
+        "url":  "{BASE}/equipment",
+        "body":  null,
+        "expected":  "200",
+        "actual":  "200",
+        "pass":  true,
+        "response":  "[{\"id\":\"eq-1\",\"name\":\"Projector A\",\"location\":\"Building 1\"},{\"id\":\"eq-2\",\"name\":\"Camera B\",\"location\":\"Building 2\"}]"
+    },
+    {
+        "num":  2,
+        "name":  "Create booking (valid)",
+        "method":  "POST",
+        "url":  "{BASE}/bookings",
+        "body":  "{\"equipmentId\":\"eq-1\",\"borrowerName\":\"Somchai Jaidee\",\"startAt\":\"2026-10-20T09:00:00.000Z\",\"endAt\":\"2026-10-20T11:00:00.000Z\",\"purpose\":\"Class presentation\"}",
+        "expected":  "201",
+        "actual":  "201",
+        "pass":  true,
+        "response":  "{\"id\":\"1b1237f3-358d-4a5b-a228-473c78ad303e\",\"equipmentId\":\"eq-1\",\"borrowerName\":\"Somchai Jaidee\",\"startAt\":\"2026-10-20T09:00:00.000Z\",\"endAt\":\"2026-10-20T11:00:00.000Z\",\"purpose\":\"Class presentation\",\"createdAt\":\"2026-10-06T06:51:05.282Z\"}"
+    },
+    {
+        "num":  3,
+        "name":  "Create overlapping booking",
+        "method":  "POST",
+        "url":  "{BASE}/bookings",
+        "body":  "{\"equipmentId\":\"eq-1\",\"borrowerName\":\"prung Pendee\",\"startAt\":\"2026-10-20T10:00:00.000Z\",\"endAt\":\"2026-10-20T12:00:00.000Z\",\"purpose\":\"Video shoot\"}",
+        "expected":  "409",
+        "actual":  "409",
+        "pass":  true,
+        "response":  "{\"error\":\"Equipment eq-1 is already booked from 2026-10-20T09:00:00.000Z to 2026-10-20T11:00:00.000Z\"}"
+    },
+    {
+        "num":  4,
+        "name":  "Create with end before start",
+        "method":  "POST",
+        "url":  "{BASE}/bookings",
+        "body":  "{\"equipmentId\":\"eq-1\",\"borrowerName\":\"Bad Time\",\"startAt\":\"2026-10-20T11:00:00.000Z\",\"endAt\":\"2026-10-20T09:00:00.000Z\",\"purpose\":\"Invalid range\"}",
+        "expected":  "400",
+        "actual":  "400",
+        "pass":  true,
+        "response":  "{\"error\":\"startAt must be before endAt\"}"
+    },
+    {
+        "num":  5,
+        "name":  "Create with unknown equipmentId",
+        "method":  "POST",
+        "url":  "{BASE}/bookings",
+        "body":  "{\"equipmentId\":\"eq-999\",\"borrowerName\":\"No Gear\",\"startAt\":\"2026-10-21T09:00:00.000Z\",\"endAt\":\"2026-10-21T10:00:00.000Z\",\"purpose\":\"Ghost booking\"}",
+        "expected":  "400",
+        "actual":  "400",
+        "pass":  true,
+        "response":  "{\"error\":\"Equipment eq-999 does not exist\"}"
+    },
+    {
+        "num":  6,
+        "name":  "Get missing booking",
+        "method":  "GET",
+        "url":  "{BASE}/bookings/no-such-id",
+        "body":  null,
+        "expected":  "404",
+        "actual":  "404",
+        "pass":  true,
+        "response":  "{\"error\":\"Booking no-such-id not found\"}"
+    },
+    {
+        "num":  7,
+        "name":  "Update own booking (extend end)",
+        "method":  "PATCH",
+        "url":  "{BASE}/bookings/1b1237f3-358d-4a5b-a228-473c78ad303e",
+        "body":  "{\"purpose\":\"Class presentation (updated)\",\"endAt\":\"2026-10-20T11:30:00.000Z\"}",
+        "expected":  "200",
+        "actual":  "200",
+        "pass":  true,
+        "response":  "{\"id\":\"1b1237f3-358d-4a5b-a228-473c78ad303e\",\"equipmentId\":\"eq-1\",\"borrowerName\":\"Somchai Jaidee\",\"startAt\":\"2026-10-20T09:00:00.000Z\",\"endAt\":\"2026-10-20T11:30:00.000Z\",\"purpose\":\"Class presentation (updated)\",\"createdAt\":\"2026-10-06T06:51:05.282Z\"}"
+    },
+    {
+        "num":  7,
+        "name":  "Update booking into conflicting window",
+        "method":  "PATCH",
+        "url":  "{BASE}/bookings/1b1237f3-358d-4a5b-a228-473c78ad303e",
+        "body":  "{\"startAt\":\"2026-10-21T09:00:00.000Z\",\"endAt\":\"2026-10-21T11:00:00.000Z\"}",
+        "expected":  "409",
+        "actual":  "409",
+        "pass":  true,
+        "response":  "{\"error\":\"Equipment eq-1 is already booked from 2026-10-21T09:00:00.000Z to 2026-10-21T11:00:00.000Z\"}"
+    },
+    {
+        "num":  8,
+        "name":  "Delete booking",
+        "method":  "DELETE",
+        "url":  "{BASE}/bookings/1b1237f3-358d-4a5b-a228-473c78ad303e",
+        "body":  null,
+        "expected":  "204",
+        "actual":  "204",
+        "pass":  true,
+        "response":  "(empty body)"
+    },
+    {
+        "num":  8,
+        "name":  "Get after delete",
+        "method":  "GET",
+        "url":  "{BASE}/bookings/1b1237f3-358d-4a5b-a228-473c78ad303e",
+        "body":  null,
+        "expected":  "404",
+        "actual":  "404",
+        "pass":  true,
+        "response":  "{\"error\":\"Booking 1b1237f3-358d-4a5b-a228-473c78ad303e not found\"}"
+    },
+    {
+        "num":  9,
+        "name":  "Create with zero-length window",
+        "method":  "POST",
+        "url":  "{BASE}/bookings",
+        "body":  "{\"equipmentId\":\"eq-2\",\"borrowerName\":\"Boundary Test\",\"startAt\":\"2026-10-22T09:00:00.000Z\",\"endAt\":\"2026-10-22T09:00:00.000Z\",\"purpose\":\"zero length\"}",
+        "expected":  "400",
+        "actual":  "400",
+        "pass":  true,
+        "response":  "{\"error\":\"startAt must be before endAt\"}"
+    }
+]
